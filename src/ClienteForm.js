@@ -4,7 +4,7 @@ import M from "materialize-css";
 
 const ClienteForm = ({ onUserAdded }) => {
   const [nome, setNome] = useState("");
-  const [CpfOuCnpj, setCpfOuCnpj] = useState("");
+  const [cpfOuCnpj, setCpfOuCnpj] = useState("");
   const [telefone, setTelefone] = useState("");
   const [endereco, setEndereco] = useState("");
 
@@ -15,7 +15,7 @@ const ClienteForm = ({ onUserAdded }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post("http://localhost:8080/api/clientes", { nome, CpfOuCnpj, telefone, endereco });
+      await axios.post("http://localhost:8080/api/clientes", { nome, cpfOuCnpj, telefone, endereco });
       setNome("");
       setCpfOuCnpj("");
       setTelefone("");
@@ -46,7 +46,7 @@ const ClienteForm = ({ onUserAdded }) => {
           <input
             id="cpfouCnpj"
             type="text"
-            value={CpfOuCnpj}
+            value={cpfOuCnpj}
             onChange={(e) => setCpfOuCnpj(e.target.value)}
             required
           />

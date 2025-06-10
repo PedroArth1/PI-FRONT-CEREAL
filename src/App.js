@@ -29,7 +29,7 @@ function App() {
 
   const renderContent = () => {
     switch (activeScreen) {
-      case "pessoa":
+      case "cliente":
         return (
           <>
             <PessoaForm onUserAdded={() => setUpdateList(!updateList)} />
@@ -63,8 +63,8 @@ function App() {
   return (
     <div>
       <nav>
-        <div className="nav-wrapper blue">
-          <div className="brand-logo center">UNIPAR</div>
+        <div className="nav-wrapper green block">
+          <div className="brand-logo center">Cerealista Pereira</div>
         </div>
       </nav>
 
@@ -73,8 +73,8 @@ function App() {
           <div className="user-view">MENU</div>
         </li>
         <li>
-          <a href="#!" onClick={() => handleScreenChange("pessoa")}>
-            Cadastro de Pessoa
+          <a href="#!" onClick={() => handleScreenChange("cliente")}>
+            Cadastro de Cliente
           </a>
         </li>
         <li>

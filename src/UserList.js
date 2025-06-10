@@ -8,8 +8,12 @@ const UserList = () => {
   const [usuarioSelecionado, setUsuarioSelecionado] = useState(null);
 
   const fetchUsers = async () => {
-    const response = await axios.get("http://localhost:8080/api/usuarios");
-    setUsuarios(response.data);
+    try {
+      const response = await axios.get("http://localhost:8080/api/usuarios");
+      setUsuarios(response.data);
+    } catch (error) {
+      M.toast({ html: "Erro ao buscar usuários", classes: "red" });
+    }
   };
 
   useEffect(() => {
@@ -19,15 +23,19 @@ const UserList = () => {
   const handleEditar = (usuario) => {
     setUsuarioSelecionado(usuario);
   };
-  
+
   const handleCancelEdit = () => {
     setUsuarioSelecionado(null);
   };
 
-  const handleExcluir = async (id) => {
+  const handleExcluir = async (idUsuario) => {
+    const confirmar = window.confirm("Tem certeza que deseja excluir este usuário?");
+    if (!confirmar) return;
+
     try {
-      await axios.delete(`http://localhost:8080/api/usuarios/${id}`);
+      await axios.delete(`http://localhost:8080/api/usuarios/${idUsuario}`);
       await fetchUsers();
+      M.toast({ html: "Usuário excluído com sucesso!", classes: "green" });
     } catch (error) {
       console.error("Erro ao excluir usuário:", error);
       M.toast({ html: "Erro ao excluir usuário", classes: "red" });
@@ -57,7 +65,7 @@ const UserList = () => {
         </thead>
         <tbody>
           {usuarios.map((usuario) => (
-            <tr key={usuario.id}>
+            <tr key={usuario.idUsuario}>
               <td><strong>{usuario.nome}</strong></td>
               <td>{usuario.login}</td>
               <td>{usuario.senha}</td>
@@ -72,7 +80,7 @@ const UserList = () => {
                 </button>
                 <button
                   className="btn-flat"
-                  onClick={() => handleExcluir(usuario.id)}
+                  onClick={() => handleExcluir(usuario.idUsuario)}
                   title="Excluir"
                 >
                   <i className="material-icons text-darken-2">delete</i>
@@ -87,4 +95,3 @@ const UserList = () => {
 };
 
 export default UserList;
-

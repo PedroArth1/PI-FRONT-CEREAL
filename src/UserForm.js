@@ -3,110 +3,124 @@ import axios from "axios";
 import M from "materialize-css";
 
 const UserForm = ({ usuarioSelecionado, onUserAdded, onCancelEdit }) => {
-  const [id, setId] = useState(null);
+  const [idUsuario, setIdUsuario] = useState(null);
   const [nome, setNome] = useState("");
   const [login, setLogin] = useState("");
   const [senha, setSenha] = useState("");
   const [perfil, setPerfil] = useState("");
 
-
   useEffect(() => {
     if (usuarioSelecionado) {
-      setId(usuarioSelecionado.id);
+      setIdUsuario(usuarioSelecionado.idUsuario);
       setNome(usuarioSelecionado.nome);
       setLogin(usuarioSelecionado.login);
       setSenha(usuarioSelecionado.senha);
       setPerfil(usuarioSelecionado.perfil);
-      setTimeout(() => M.updateTextFields(), 0); // Atualiza labels
     } else {
       limparCampos();
     }
+    setTimeout(() => M.updateTextFields(), 0);
+    // eslint-disable-next-line
   }, [usuarioSelecionado]);
 
   const limparCampos = () => {
-    setId(null);
+    setIdUsuario(null);
     setNome("");
     setLogin("");
     setSenha("");
     setPerfil("");
-    // Limpa os campos do formulário
-
     setTimeout(() => M.updateTextFields(), 0);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post("http://localhost:8080/api/usuario", {
-        id,
-        nome,
-        login,
-        senha,
-        perfil,
-      });
-      M.toast({ html: "Usuário salvo com sucesso!", classes: "green" });
+      if (idUsuario) {
+        await axios.put(`http://localhost:8080/api/usuarios/${idUsuario}`, {
+          nome,
+          login,
+          senha,
+          perfil,
+        });
+        M.toast({ html: "Usuário atualizado com sucesso!", classes: "green" });
+      } else {
+        await axios.post("http://localhost:8080/api/usuarios", {
+          nome,
+          login,
+          senha,
+          perfil,
+        });
+        M.toast({ html: "Usuário cadastrado com sucesso!", classes: "green" });
+      }
       limparCampos();
-      onUserAdded();
+      if (onUserAdded) onUserAdded();
     } catch (error) {
       console.error("Erro ao salvar usuário:", error);
-      M.toast({ html: "Erro ao salvar usuário", classes: "red" });
+      M.toast({
+        html: error.response?.data?.message || "Erro ao salvar usuário",
+        classes: "red",
+      });
     }
   };
 
   return (
     <div>
-      <h4>{id ? "Editar Usuário" : "Cadastrar Usuário"}</h4>
+      <h4>{idUsuario ? "Editar Usuário" : "Cadastrar Usuário"}</h4>
       <form onSubmit={handleSubmit}>
         <div className="input-field">
           <input
-            id="nome"
+            idUsuario="nome"
             type="text"
             value={nome}
             onChange={(e) => setNome(e.target.value)}
             required
           />
-          <label htmlFor="nome">Nome</label>
+          <label htmlFor="nome" className={nome ? "active" : ""}>Nome</label>
         </div>
         <div className="input-field">
           <input
-            id="login"
+            idUsuario="login"
             type="text"
             value={login}
             onChange={(e) => setLogin(e.target.value)}
             required
           />
-          <label htmlFor="login">Login</label>
+          <label htmlFor="login" className={login ? "active" : ""}>Login</label>
         </div>
         <div className="input-field">
           <input
-            id="senha"
+            idUsuario="senha"
             type="password"
             value={senha}
             onChange={(e) => setSenha(e.target.value)}
             required
           />
-          <label htmlFor="senha">Senha</label>
+          <label htmlFor="senha" className={senha ? "active" : ""}>Senha</label>
         </div>
         <div className="input-field">
-          <input
-            id="perfil"
-            type="password"
+          <select
+            idUsuario="perfil"
+            className="browser-default"
             value={perfil}
             onChange={(e) => setPerfil(e.target.value)}
             required
-          />
-          <label htmlFor="perfil">Perfil</label>
+          >
+            <option value="" disabled>Selecione o perfil</option>
+            <option value="GERENTE">GERENTE</option>
+            <option value="OPERADOR">OPERADOR</option>
+          </select>
+          <label className="active" htmlFor="perfil">Perfil</label>
         </div>
         <button className="btn waves-effect waves-light" type="submit">
-          {id ? "Atualizar" : "Cadastrar"}
+          {idUsuario ? "Atualizar" : "Cadastrar"}
         </button>
-        {id && (
+        {idUsuario && (
           <button
             type="button"
             className="btn-flat red-text"
             onClick={() => {
               limparCampos();
-              onCancelEdit();
+              if (onCancelEdit) onCancelEdit();
             }}
             style={{ marginLeft: "10px" }}
           >

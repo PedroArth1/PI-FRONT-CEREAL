@@ -69,7 +69,7 @@ const ProdutoForm = ({ onUserAdded }) => {
             value={tipo}
             onChange={(e) => setTipo(e.target.value)}
           />
-          <label htmlFor="tipo">Tipo (opcional)</label>
+          <label htmlFor="tipo">Tipo</label>
         </div>
 
         {/* Validade */}
@@ -81,7 +81,7 @@ const ProdutoForm = ({ onUserAdded }) => {
             onChange={(e) => setValidade(e.target.value)}
           />
           <label htmlFor="validade" className="active">
-            Validade (opcional)
+            Validade
           </label>
         </div>
 
@@ -107,7 +107,7 @@ const ProdutoForm = ({ onUserAdded }) => {
             value={precoCusto}
             onChange={(e) => setPrecoCusto(e.target.value)}
           />
-          <label htmlFor="precoCusto">Preço de Custo (opcional)</label>
+          <label htmlFor="precoCusto">Preço de Custo</label>
         </div>
 
         {/* Estoque */}
