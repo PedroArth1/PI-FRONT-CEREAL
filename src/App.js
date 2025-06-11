@@ -1,10 +1,13 @@
-import React, { useState, useEffect } from "react";
-import M from "materialize-css";
-import "materialize-css/dist/css/materialize.min.css";
-import "materialize-css/dist/js/materialize.min.js";
+import React, { useState } from "react";
+import { 
+  Users, 
+  Package, 
+  ShoppingCart, 
+  User,
+  Wheat 
+} from "lucide-react";
 
 import PessoaForm from "./ClienteForm";
-import ProdutoForm from "./ProdutoForm";
 import UserList from "./UserList";
 import PessoaList from "./ClienteList";
 import ProdutoList from "./ProdutoList";
@@ -12,17 +15,13 @@ import VendaList from "./VendaList";
 
 function App() {
   const [updateList, setUpdateList] = useState(false);
-  const [activeScreen, setActiveScreen] = useState("usuario");
-
-    const [clienteParaEditar, setClienteParaEditar] = useState(null);
-    const [produtoParaEditar, setProdutoParaEditar] = useState(null);
-
-  useEffect(() => {
-    const elems = document.querySelectorAll(".sidenav");
-    M.Sidenav.init(elems);
-  }, []);
+  const [activeScreen, setActiveScreen] = useState("cliente");
+  const [clienteParaEditar, setClienteParaEditar] = useState(null);
 
   const handleScreenChange = (screen) => {
+    // Limpar estados de edição ao trocar de tela
+    setClienteParaEditar(null);
+    
     if (activeScreen === screen) {
       setUpdateList((prev) => !prev);
     } else {
@@ -30,18 +29,25 @@ function App() {
     }
   };
 
+  const menuItems = [
+    { id: "cliente", label: "Clientes", icon: Users },
+    { id: "produto", label: "Produtos", icon: Package },
+    { id: "venda", label: "Vendas", icon: ShoppingCart },
+    { id: "usuario", label: "Usuários", icon: User },
+  ];
+
   const renderContent = () => {
     switch (activeScreen) {
       case "cliente":
         return (
           <>
-            <PessoaForm 
+            <PessoaForm
               onUserAdded={() => setUpdateList(!updateList)}
               clienteParaEditar={clienteParaEditar}
               setClienteParaEditar={setClienteParaEditar}
             />
-            <PessoaList 
-              key={updateList} 
+            <PessoaList
+              key={updateList}
               onEdit={(cliente) => {
                 setClienteParaEditar(cliente);
                 setActiveScreen("cliente");
@@ -51,80 +57,92 @@ function App() {
         );
       case "produto":
         return (
-          <>
-            <ProdutoForm 
-              onUserAdded={() => setUpdateList(!updateList)} 
-              produtoParaEditar={produtoParaEditar}
-              setProdutoParaEditar={setProdutoParaEditar}
-            />
-            <ProdutoList 
-              onEditProduto={(produto) => {
-                setProdutoParaEditar(produto);
-              }}
-              updateTrigger={updateList}
-            />
-          </>
+          <ProdutoList
+            key={updateList}
+            updateTrigger={updateList}
+          />
         );
       case "usuario":
-        return (
-          <>
-            <UserList key={updateList} />
-          </>
-        );
+        return <UserList key={updateList} />;
       case "venda":
-        return (
-          <>
-            <VendaList key={updateList} init={updateList} />
-          </>
-        );
+        return <VendaList key={updateList} init={updateList} />;
       default:
         return null;
     }
   };
 
+  const getScreenTitle = () => {
+    const titles = {
+      cliente: "Clientes",
+      produto: "Produtos", 
+      venda: "Vendas",
+      usuario: "Usuários"
+    };
+    return titles[activeScreen] || activeScreen;
+  };
+
   return (
-    <div>
-      <nav>
-        <div className="nav-wrapper green block">
-          <div className="brand-logo center">Cerealista Pereira</div>
+    <div className="flex min-h-screen bg-gray-50">
+      {/* Sidebar */}
+      <div className="w-64 bg-white shadow-lg fixed h-full z-10">
+        <div className="px-6 py-4 border-b border-gray-200">
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">
+              <Wheat className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h1 className="text-lg font-bold text-gray-800">Sistema Cerealista</h1>
+              <p className="text-sm text-gray-600">Gestão Completa</p>
+            </div>
+          </div>
         </div>
-      </nav>
 
-      <ul id="slide-out" className="sidenav sidenav-fixed">
-        <li>
-          <div className="user-view">MENU</div>
-        </li>
-        <li>
-          <a href="#!" onClick={() => handleScreenChange("cliente")}>
-            Cadastro de Cliente
-          </a>
-        </li>
-        <li>
-          <a href="#!" onClick={() => handleScreenChange("produto")}>
-            Cadastro de Produto
-          </a>
-        </li>
-        <li>
-          <a href="#!" onClick={() => handleScreenChange("usuario")}>
-            Cadastro de Usuário
-          </a>
-        </li>
-        <li>
-          <a href="#!" onClick={() => handleScreenChange("venda")}>
-            Efetuar Venda
-          </a>
-        </li>
-        <li>
-          <div className="divider"></div>
-        </li>
-        <li>
-          <a href="#!" onClick={() => alert("Relatórios")}>
-            Relatórios
-          </a>
-        </li>
-      </ul>
+        {/* Menu Items */}
+        <div className="px-4 py-6">
+          <div className="mb-4">
+            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3 px-2">
+              Menu Principal
+            </h3>
+          </div>
+          
+          <nav className="space-y-1">
+            {menuItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeScreen === item.id;
+              
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => handleScreenChange(item.id)}
+                  className={`w-full flex items-center space-x-3 px-3 py-3 rounded-lg text-left transition-all duration-200 group border-0 outline-none ${
+                    isActive 
+                      ? "bg-green-600 text-white" 
+                      : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                  }`}
+                >
+                  <Icon className="w-5 h-5" />
+                  <span className="font-medium">{item.label}</span>
+                </button>
+              );
+            })}
+          </nav>
+        </div>
+      </div>
 
-      <main style={{ marginLeft: 300, padding: 20 }}>{renderContent()}</main>
+      {/* Main Content */}
+      <div className="flex-1 ml-64">
+        <div className="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
+          <div className="flex items-center">
+            <h2 className="text-xl font-semibold text-gray-800">
+              {getScreenTitle()}
+            </h2>
+          </div>
+        </div>
+
+        <div className="p-6">
+          {renderContent()}
+        </div>
+      </div>
     </div>
   );
 }

@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Autocomplete, TextField, Card, CardContent, Typography, Alert, Chip } from "@mui/material";
+import { Autocomplete, TextField, Card, CardContent, Typography, Alert, Chip, Button } from "@mui/material";
 import axios from "axios";
-import M from "materialize-css";
 
 const VendaForm = ({ onCancel }) => {
     const [cliente, setCliente] = useState(null);
@@ -16,6 +15,13 @@ const VendaForm = ({ onCancel }) => {
     const [valorTotal, setValorTotal] = useState(0.0);
     const [dataVenda, setDataVenda] = useState(new Date().toISOString().split('T')[0]);
     const [loading, setLoading] = useState(false);
+    const [toast, setToast] = useState({ show: false, message: "", type: "" });
+
+    // Mostrar toast temporário
+    const showToast = (message, type) => {
+        setToast({ show: true, message, type });
+        setTimeout(() => setToast({ show: false, message: "", type: "" }), 3000);
+    };
 
     useEffect(() => {
         const delay = setTimeout(() => {
@@ -56,29 +62,23 @@ const VendaForm = ({ onCancel }) => {
                 const quantidadeEstoque = produto.quantidadeEstoque;
                 
                 if (quantidadeEstoque !== undefined && novaQuantidade > quantidadeEstoque) {
-                    M.toast({ 
-                        html: `⚠️ Não é possível adicionar mais itens. quantidadeEstoque disponível: ${quantidadeEstoque}`, 
-                        classes: "orange" 
-                    });
+                    showToast(`⚠️ Não é possível adicionar mais itens. Estoque disponível: ${quantidadeEstoque}`, "warning");
                     return;
                 }
                 
-                // Se já existe e há quantidadeEstoque, aumenta a quantidade
+                // Se já existe e há estoque, aumenta a quantidade
                 const novosItens = itens.map(item => 
                     item.produto.idProduto === produto.idProduto 
                         ? { ...item, quantidade: novaQuantidade }
                         : item
                 );
                 setItens(novosItens);
-                M.toast({ html: "Quantidade do produto aumentada!", classes: "blue" });
+                showToast("Quantidade do produto aumentada!", "success");
             } else {
-                // Verifica quantidadeEstoque antes de adicionar novo item
+                // Verifica estoque antes de adicionar novo item
                 const quantidadeEstoque = produto.quantidadeEstoque;
                 if (quantidadeEstoque !== undefined && quantidadeEstoque <= 0) {
-                    M.toast({ 
-                        html: `❌ Produto sem quantidadeEstoque disponível!`, 
-                        classes: "red" 
-                    });
+                    showToast(`❌ Produto sem estoque disponível!`, "error");
                     return;
                 }
                 
@@ -90,7 +90,7 @@ const VendaForm = ({ onCancel }) => {
                     quantidade: 1,
                 };
                 setItens([...itens, item]);
-                M.toast({ html: "Produto adicionado!", classes: "green" });
+                showToast("Produto adicionado!", "success");
             }
             
             setProduto(null);
@@ -102,7 +102,7 @@ const VendaForm = ({ onCancel }) => {
         if (item) {
             const newItens = itens.filter(itemR => itemR.produto.idProduto !== item.produto.idProduto);
             setItens(newItens);
-            M.toast({ html: "Produto removido!", classes: "orange" });
+            showToast("Produto removido!", "warning");
         }
     }
 
@@ -123,12 +123,9 @@ const VendaForm = ({ onCancel }) => {
             const novaQuantidade = parseFloat(valor) || 0;
             const quantidadeEstoque = novosItens[index].produto.quantidadeEstoque;
             
-            // Verifica se a quantidade não excede o quantidadeEstoque
+            // Verifica se a quantidade não excede o estoque
             if (quantidadeEstoque !== undefined && novaQuantidade > quantidadeEstoque) {
-                M.toast({ 
-                    html: `⚠️ Quantidade não pode exceder o quantidadeEstoque disponível (${quantidadeEstoque})!`, 
-                    classes: "orange" 
-                });
+                showToast(`⚠️ Quantidade não pode exceder o estoque disponível (${quantidadeEstoque})!`, "warning");
                 novosItens[index].quantidade = quantidadeEstoque;
             } else {
                 novosItens[index].quantidade = novaQuantidade;
@@ -143,12 +140,12 @@ const VendaForm = ({ onCancel }) => {
         
         // Validações
         if (!cliente) {
-            M.toast({ html: "Por favor, selecione um cliente!", classes: "red" });
+            showToast("Por favor, selecione um cliente!", "error");
             return;
         }
         
         if (itens.length === 0) {
-            M.toast({ html: "Adicione pelo menos um produto à venda!", classes: "red" });
+            showToast("Adicione pelo menos um produto à venda!", "error");
             return;
         }
 
@@ -167,11 +164,9 @@ const VendaForm = ({ onCancel }) => {
                 }))
             };
 
-            console.log("Venda a ser enviada:", venda);
-
             await axios.post("http://localhost:8080/api/vendas", venda);
             
-            M.toast({ html: "Venda realizada com sucesso!", classes: "green" });
+            showToast("Venda realizada com sucesso!", "success");
             
             // Resetar formulário após sucesso
             setCliente(null);
@@ -182,7 +177,7 @@ const VendaForm = ({ onCancel }) => {
 
         } catch (error) {
             console.error("Erro ao efetuar venda:", error);
-            M.toast({ html: "Erro ao efetuar venda: " + (error.response?.data?.message || error.message), classes: "red" });
+            showToast("Erro ao efetuar venda: " + (error.response?.data?.message || error.message), "error");
         } finally {
             setLoading(false);
         }
@@ -196,57 +191,58 @@ const VendaForm = ({ onCancel }) => {
         setDataVenda(new Date().toISOString().split('T')[0]);
         setProduto(null);
         setProdutoInputValue("");
-        M.toast({ html: "Formulário limpo!", classes: "blue" });
+        showToast("Formulário limpo!", "info");
     };
 
     return (
-        <div className="container" style={{ maxWidth: '1200px', margin: '0 auto', padding: '20px' }}>
-            <Card elevation={3} style={{ marginBottom: '20px' }}>
+        <div className="container mx-auto p-4 max-w-6xl">
+            {/* Toast Notification */}
+            {toast.show && (
+                <div className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg text-white ${
+                    toast.type === "error" ? "bg-red-500" :
+                    toast.type === "success" ? "bg-green-500" :
+                    toast.type === "warning" ? "bg-yellow-500" : "bg-green-500"
+                }`}>
+                    {toast.message}
+                </div>
+            )}
+
+            <Card elevation={3} className="mb-6">
                 <CardContent>
-                    <Typography variant="h4" component="h1" gutterBottom style={{ color: '#1976d2', fontWeight: 'bold' }}>
+                    <Typography variant="h4" component="h1" className="mb-4 text-green-600 font-bold">
                         🛍️ Nova Venda
                     </Typography>
                     
                     <form onSubmit={handleSubmit}>
-                        <div className="row">
-                            <div className="col s12 m6">
-                                <div className="input-field">
-                                    <label htmlFor="dataVenda" style={{ fontSize: '14px', fontWeight: 'bold' }}>
-                                        📅 Data da Venda
-                                    </label>
-                                    <input 
-                                        id="dataVenda"
-                                        type="date" 
-                                        value={dataVenda}
-                                        onChange={(e) => setDataVenda(e.target.value)}
-                                        required
-                                        style={{ marginTop: '10px' }}
-                                    />
-                                </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label className="block text-sm font-medium mb-1">
+                                    📅 Data da Venda
+                                </label>
+                                <input 
+                                    type="date" 
+                                    value={dataVenda}
+                                    onChange={(e) => setDataVenda(e.target.value)}
+                                    required
+                                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+                                />
                             </div>
                             
-                            <div className="col s12 m6">
-                                <div className="input-field">
-                                    <label style={{ fontSize: '14px', fontWeight: 'bold', color: '#4caf50'}}>
-                                        💰 Total da Venda
-                                    </label>
-                                    <input 
-                                        type="text" 
-                                        value={`R$ ${valorTotal.toFixed(2)}`} 
-                                        disabled={true}
-                                        style={{ 
-                                            marginTop: '10px',
-                                            fontSize: '18px',
-                                            fontWeight: 'bold',
-                                            color: '#4caf50'
-                                        }}
-                                    />
-                                </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1 text-green-600">
+                                    💰 Total da Venda
+                                </label>
+                                <input 
+                                    type="text" 
+                                    value={`R$ ${valorTotal.toFixed(2)}`} 
+                                    disabled
+                                    className="w-full p-2 border border-gray-300 rounded-md bg-gray-100 text-green-600 font-bold text-lg"
+                                />
                             </div>
                         </div>
 
-                        <div style={{ marginTop: '20px' }}>
-                            <label style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '10px', display: 'block' }}>
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium mb-2">
                                 👤 Cliente
                             </label>
                             <Autocomplete
@@ -268,11 +264,11 @@ const VendaForm = ({ onCancel }) => {
                                     />
                                 )}
                                 renderOption={(props, option) => (
-                                    <li {...props} key={option?.id} style={{ padding: '10px' }}>
+                                    <li {...props} key={option?.id} className="p-2">
                                         <div>
                                             <strong>{option?.nome}</strong>
                                             <br />
-                                            <small style={{ color: '#666' }}>{option?.cpfOuCnpj}</small>
+                                            <small className="text-gray-600">{option?.cpfOuCnpj}</small>
                                         </div>
                                     </li>
                                 )}
@@ -281,37 +277,49 @@ const VendaForm = ({ onCancel }) => {
                                 <Chip 
                                     label={`✅ ${cliente.nome}`} 
                                     color="primary" 
-                                    style={{ marginTop: '10px' }}
+                                    className="mt-2"
                                 />
                             )}
                         </div>
 
-                        <div style={{ marginTop: '30px', textAlign: 'center' }}>
-                            <button 
-                                className="btn waves-effect waves-light green" 
+                        <div className="flex flex-wrap justify-center gap-2 mt-6">
+                            <Button
+                                variant="contained"
+                                color="success"
                                 type="submit"
                                 disabled={loading || !cliente || itens.length === 0}
-                                style={{ marginRight: '10px', padding: '0 30px' }}
+                                className="flex items-center gap-1 min-w-[180px]"
                             >
-                                {loading ? "Salvando..." : "💾 Finalizar Venda"}
-                            </button>
+                                {loading ? (
+                                    <>
+                                        <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                        Salvando...
+                                    </>
+                                ) : (
+                                    <>💾 Finalizar Venda</>
+                                )}
+                            </Button>
                             
-                            <button
-                                className="btn waves-effect waves-light orange"
-                                type="button"
+                            <Button
+                                variant="contained"
+                                color="warning"
                                 onClick={limparFormulario}
-                                style={{ marginRight: '10px' }}
+                                className="flex items-center gap-1 min-w-[120px]"
                             >
                                 🧹 Limpar
-                            </button>
+                            </Button>
                             
-                            <button
-                                className="btn waves-effect waves-light red"
-                                type="button"
+                            <Button
+                                variant="contained"
+                                color="error"
                                 onClick={onCancel}
+                                className="flex items-center gap-1 min-w-[120px]"
                             >
                                 ❌ Cancelar
-                            </button>
+                            </Button>
                         </div>
                     </form>
                 </CardContent>
@@ -319,16 +327,16 @@ const VendaForm = ({ onCancel }) => {
             
             <Card elevation={3}>
                 <CardContent>
-                    <Typography variant="h5" component="h2" gutterBottom style={{ color: '#1976d2', fontWeight: 'bold' }}>
+                    <Typography variant="h5" component="h2" className="mb-4 text-green-600 font-bold">
                         🛒 Adicionar Produtos
                     </Typography>
                     
-                    <div style={{ marginBottom: '20px' }}>
-                        <label style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '10px', display: 'block' }}>
+                    <div className="mb-6">
+                        <label className="block text-sm font-medium mb-2">
                             🔍 Buscar Produto
                         </label>
-                        <div className="row" style={{ marginBottom: '0' }}>
-                            <div className="col s12 m9">
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div className="md:col-span-3">
                                 <Autocomplete
                                     value={produto}
                                     onChange={(event, newValue) => setProduto(newValue)}
@@ -348,11 +356,11 @@ const VendaForm = ({ onCancel }) => {
                                         />
                                     )}
                                     renderOption={(props, option) => (
-                                        <li {...props} key={option?.idProduto} style={{ padding: '10px' }}>
+                                        <li {...props} key={option?.idProduto} className="p-2">
                                             <div>
                                                 <strong>{option?.nome}</strong>
                                                 <br />
-                                                <span style={{ color: '#4caf50', fontWeight: 'bold' }}>
+                                                <span className="text-green-600 font-bold">
                                                     R$ {option?.preco?.toFixed(2)}
                                                 </span>
                                             </div>
@@ -360,108 +368,96 @@ const VendaForm = ({ onCancel }) => {
                                     )}
                                 />
                             </div>
-                            <div className="col s12 m3">
-                                <button 
-                                    className="btn waves-effect waves-light blue"
-                                    type="button"
+                            <div>
+                                <Button
+                                    variant="contained"
+                                    color="primary"
                                     onClick={handleAddItem}
                                     disabled={!produto}
-                                    style={{ width: '100%', height: '40px' }}
+                                    className="w-full h-full"
                                 >
                                     ➕ Adicionar
-                                </button>
+                                </Button>
                             </div>
                         </div>
                     </div>
 
-                    {itens.length > 0 && (
+                    {itens.length > 0 ? (
                         <div>
-                            <Typography variant="h6" style={{ marginBottom: '15px', color: '#1976d2' }}>
+                            <Typography variant="h6" className="mb-4 text-green-600">
                                 📋 Itens da Venda ({itens.length} {itens.length === 1 ? 'item' : 'itens'})
                             </Typography>
                             
-                            <div style={{ overflowX: 'auto' }}>
-                                <table className="striped highlight responsive-table">
-                                    <thead>
-                                        <tr style={{ backgroundColor: '#f5f5f5' }}>
-                                            <th style={{ textAlign: 'center' }}>ID</th>
-                                            <th>Produto</th>
-                                            <th style={{ textAlign: 'center' }}>Valor Unit.</th>
-                                            <th style={{ textAlign: 'center' }}>Qtde</th>
-                                            <th style={{ textAlign: 'center' }}>quantidadeEstoque</th>
-                                            <th style={{ textAlign: 'center' }}>Custo Unit.</th>
-                                            <th style={{ textAlign: 'center' }}>Subtotal</th>
-                                            <th style={{ textAlign: 'center' }}>Ação</th>
+                            <div className="overflow-x-auto">
+                                <table className="min-w-full border border-gray-200">
+                                    <thead className="bg-gray-100">
+                                        <tr>
+                                            <th className="py-2 px-4 text-left">ID</th>
+                                            <th className="py-2 px-4 text-left">Produto</th>
+                                            <th className="py-2 px-4 text-center">Valor Unit.</th>
+                                            <th className="py-2 px-4 text-center">Qtde</th>
+                                            <th className="py-2 px-4 text-center">Estoque</th>
+                                            <th className="py-2 px-4 text-center">Custo Unit.</th>
+                                            <th className="py-2 px-4 text-center">Subtotal</th>
+                                            <th className="py-2 px-4 text-center">Ação</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {itens.map((item, index) => (
-                                            <tr key={index} style={{ borderBottom: '1px solid #e0e0e0' }}>
-                                                <td style={{ textAlign: 'center', fontWeight: 'bold' }}>
+                                            <tr key={index} className="border-b border-gray-200 hover:bg-gray-50">
+                                                <td className="py-2 px-4 font-bold text-center">
                                                     {item.produto.idProduto}
                                                 </td>
-                                                <td style={{ fontWeight: 'bold' }}>
+                                                <td className="py-2 px-4 font-bold">
                                                     {item.produto.nome}
                                                 </td>
-                                                <td style={{ textAlign: 'center' }}>
+                                                <td className="py-2 px-4 text-center">
                                                     <input
                                                         type="number"
                                                         step="0.01"
                                                         value={item.precoUnitario}
                                                         onChange={(e) => handleChange(index, 'precoUnitario', e.target.value)}
-                                                        style={{ 
-                                                            width: '80px', 
-                                                            textAlign: 'center',
-                                                            border: '1px solid #ddd',
-                                                            borderRadius: '4px',
-                                                            padding: '5px'
-                                                        }}
+                                                        className="w-24 p-1 border border-gray-300 rounded text-center focus:ring-green-500 focus:border-green-500"
                                                     />
                                                 </td>
-                                                <td style={{ textAlign: 'center' }}>
+                                                <td className="py-2 px-4 text-center">
                                                     <input
                                                         type="number"
-                                                        step="0.01"
+                                                        step="1"
                                                         value={item.quantidade}
                                                         onChange={(e) => handleChange(index, 'quantidade', e.target.value)}
                                                         max={item.produto.quantidadeEstoque || 999999}
-                                                        style={{ 
-                                                            width: '70px', 
-                                                            textAlign: 'center',
-                                                            border: '1px solid #ddd',
-                                                            borderRadius: '4px',
-                                                            padding: '5px'
-                                                        }}
+                                                        className="w-20 p-1 border border-gray-300 rounded text-center focus:ring-green-500 focus:border-green-500"
                                                     />
                                                 </td>
-                                                <td style={{ 
-                                                    textAlign: 'center', 
-                                                    fontWeight: 'bold',
+                                                <td className="py-2 px-4 text-center font-bold" style={{ 
                                                     color: (item.produto.quantidadeEstoque || 0) <= 0 ? '#f44336' : 
                                                            (item.produto.quantidadeEstoque || 0) <= 10 ? '#ff9800' : '#4caf50'
                                                 }}>
-                                                    {item.produto.quantidadeEstoque !== undefined ? item.produto.quantidadeEstoque : 'N/A'}
+                                                    {item.produto.quantidadeEstoque ?? 'N/A'}
                                                     {item.produto.quantidadeEstoque !== undefined && item.produto.quantidadeEstoque <= 10 && item.produto.quantidadeEstoque > 0 && (
-                                                        <small style={{ display: 'block', fontSize: '10px' }}>Baixo</small>
+                                                        <div className="text-xs">Baixo</div>
                                                     )}
                                                     {item.produto.quantidadeEstoque !== undefined && item.produto.quantidadeEstoque <= 0 && (
-                                                        <small style={{ display: 'block', fontSize: '10px' }}>Esgotado</small>
+                                                        <div className="text-xs">Esgotado</div>
                                                     )}
                                                 </td>
-                                                <td style={{ textAlign: 'center', color: '#666' }}>
+                                                <td className="py-2 px-4 text-center text-gray-600">
                                                     {item.custoUnitario ? `R$ ${item.custoUnitario.toFixed(2)}` : 'N/A'}
                                                 </td>
-                                                <td style={{ textAlign: 'center', fontWeight: 'bold', color: '#4caf50' }}>
+                                                <td className="py-2 px-4 text-center font-bold text-green-600">
                                                     R$ {(item.quantidade * item.precoUnitario).toFixed(2)}
                                                 </td>
-                                                <td style={{ textAlign: 'center' }}>
+                                                <td className="py-2 px-4 text-center">
                                                     <button 
-                                                        className="btn-floating waves-effect waves-light red"
                                                         type="button"
                                                         onClick={() => handleRemoveItem(item)}
                                                         title="Remover item"
+                                                        className="p-2 text-red-600 hover:text-red-800"
                                                     >
-                                                        <i className="material-icons">delete</i>
+                                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                        </svg>
                                                     </button>
                                                 </td>
                                             </tr>
@@ -470,10 +466,8 @@ const VendaForm = ({ onCancel }) => {
                                 </table>
                             </div>
                         </div>
-                    )}
-
-                    {itens.length === 0 && (
-                        <Alert severity="info" style={{ marginTop: '20px' }}>
+                    ) : (
+                        <Alert severity="info" className="mt-4">
                             <strong>Nenhum produto adicionado ainda.</strong>
                             <br />
                             Use o campo de busca acima para encontrar e adicionar produtos à venda.

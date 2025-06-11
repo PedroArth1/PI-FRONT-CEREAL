@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import M from "materialize-css";
 import axios from "axios";
 import VendaForm from "./VendaForm";
 
@@ -19,7 +18,8 @@ const VendaList = () => {
             .catch((error) => {
                 console.error("Erro ao buscar vendas:", error);
                 setCarregando(false);
-                M.toast({ html: "Erro ao carregar vendas", classes: "red" });
+                // Toast de erro adaptado para Tailwind
+                alert("Erro ao carregar vendas");
             });
     };
 
@@ -33,15 +33,13 @@ const VendaList = () => {
             .catch((error) => {
                 console.error("Erro ao buscar detalhes da venda:", error);
                 setCarregando(false);
-                M.toast({ html: "Erro ao carregar detalhes", classes: "red" });
+                alert("Erro ao carregar detalhes");
             });
     };
 
     useEffect(() => {
         fetchVendas();
-        M.AutoInit(); // Inicializa componentes do Materialize
     }, []);
-
 
     const formatarData = (dataString) => {
         const data = new Date(dataString);
@@ -56,72 +54,66 @@ const VendaList = () => {
     };
 
     return (
-        <div className="container">
+        <div className="container mx-auto p-4">
             {!novaVendaScreen && !vendaDetalhes && (
                 <>
-                    <h4>Lista de vendas</h4>
+                    <h4 className="text-xl font-bold mb-4">Lista de vendas</h4>
                     
                     {carregando ? (
-                        <div className="center-align" style={{ margin: '20px 0' }}>
-                            <div className="preloader-wrapper big active">
-                                <div className="spinner-layer spinner-blue-only">
-                                    <div className="circle-clipper left">
-                                        <div className="circle"></div>
-                                    </div>
-                                    <div className="gap-patch">
-                                        <div className="circle"></div>
-                                    </div>
-                                    <div className="circle-clipper right">
-                                        <div className="circle"></div>
-                                    </div>
-                                </div>
-                            </div>
+                        <div className="flex justify-center items-center my-8">
+                            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
                         </div>
                     ) : (
                         <>
-                            <table className="striped highlight responsive-table">
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Data</th>
-                                        <th>Total</th>
-                                        <th>Cliente</th>
-                                        <th>Ações</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {vendas.map((venda) => (
-                                        <tr key={venda.id}>
-                                            <td><strong>{venda.id}</strong></td>
-                                            <td>{formatarData(venda.data)}</td>
-                                            <td>{formatarMoeda(venda.valorTotal)}</td>
-                                            <td>{venda.cliente?.nome || "Cliente não informado"}</td>
-                                            <td>
-                                                <button
-                                                    className="btn-flat blue-text"
-                                                    onClick={() => fetchVendaDetalhes(venda.id)}
-                                                    title="Detalhes"
-                                                >
-                                                    <i className="material-icons">visibility</i>
-                                                </button>
-                                            </td>
+                            <div className="overflow-x-auto">
+                                <table className="min-w-full bg-white border border-gray-200 rounded-lg">
+                                    <thead className="bg-gray-100">
+                                        <tr>
+                                            <th className="py-3 px-4 text-left">ID</th>
+                                            <th className="py-3 px-4 text-left">Data</th>
+                                            <th className="py-3 px-4 text-left">Total</th>
+                                            <th className="py-3 px-4 text-left">Cliente</th>
+                                            <th className="py-3 px-4 text-left">Ações</th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody>
+                                        {vendas.map((venda) => (
+                                            <tr key={venda.id} className="border-b border-gray-200 hover:bg-gray-50">
+                                                <td className="py-3 px-4 font-medium">{venda.id}</td>
+                                                <td className="py-3 px-4">{formatarData(venda.data)}</td>
+                                                <td className="py-3 px-4">{formatarMoeda(venda.valorTotal)}</td>
+                                                <td className="py-3 px-4">{venda.cliente?.nome || "Cliente não informado"}</td>
+                                                <td className="py-3 px-4">
+                                                    <button
+                                                        className="text-blue-600 hover:text-blue-800"
+                                                        onClick={() => fetchVendaDetalhes(venda.id)}
+                                                        title="Detalhes"
+                                                    >
+                                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                                            <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                                                            <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
+                                                        </svg>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
 
                             {vendas.length === 0 && !carregando && (
-                                <div className="center-align" style={{ margin: '20px 0' }}>
-                                    <h5>Nenhuma venda encontrada</h5>
+                                <div className="text-center py-8">
+                                    <h5 className="text-lg text-gray-500">Nenhuma venda encontrada</h5>
                                 </div>
                             )}
 
                             <button 
-                                className="btn waves-effect waves-light"
+                                className="mt-6 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded flex items-center"
                                 onClick={() => setNovaVendaScreen(true)}
-                                style={{ marginTop: '20px' }}
                             >
-                                <i className="material-icons left">add</i>
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
+                                </svg>
                                 Nova venda
                             </button>
                         </>
@@ -140,46 +132,48 @@ const VendaList = () => {
             )}
 
             {vendaDetalhes && !novaVendaScreen && (
-                <div className="card">
-                    <div className="card-content">
-                        <span className="card-title">
-                            Detalhes da Venda #{vendaDetalhes.id}
-                            <button 
-                                className="btn-flat right"
-                                onClick={() => setVendaDetalhes(null)}
-                            >
-                                <i className="material-icons">close</i>
-                            </button>
-                        </span>
-                        
-                        <div className="row">
-                            <div className="col s6">
-                                <p><strong>Data:</strong> {formatarData(vendaDetalhes.data)}</p>
-                                <p><strong>Total:</strong> {formatarMoeda(vendaDetalhes.valorTotal)}</p>
-                            </div>
-                            <div className="col s6">
-                                <p><strong>Cliente:</strong> {vendaDetalhes.cliente?.nome || "Não informado"}</p>
-                                <p><strong>CPF/CNPJ:</strong> {vendaDetalhes.cliente?.cpfOuCnpj || "Não informado"}</p>
-                            </div>
+                <div className="bg-white rounded-lg shadow-md p-6 mt-4">
+                    <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-lg font-bold">Detalhes da Venda #{vendaDetalhes.id}</h3>
+                        <button 
+                            className="text-gray-500 hover:text-gray-700"
+                            onClick={() => setVendaDetalhes(null)}
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <div>
+                            <p><strong>Data:</strong> {formatarData(vendaDetalhes.data)}</p>
+                            <p><strong>Total:</strong> {formatarMoeda(vendaDetalhes.valorTotal)}</p>
                         </div>
-                        
-                        <h5>Itens da Venda</h5>
-                        <table className="striped">
-                            <thead>
+                        <div>
+                            <p><strong>Cliente:</strong> {vendaDetalhes.cliente?.nome || "Não informado"}</p>
+                            <p><strong>CPF/CNPJ:</strong> {vendaDetalhes.cliente?.cpfOuCnpj || "Não informado"}</p>
+                        </div>
+                    </div>
+                    
+                    <h5 className="font-bold mb-3">Itens da Venda</h5>
+                    <div className="overflow-x-auto">
+                        <table className="min-w-full border border-gray-200">
+                            <thead className="bg-gray-100">
                                 <tr>
-                                    <th>Produto</th>
-                                    <th>Quantidade</th>
-                                    <th>Preço Unitário</th>
-                                    <th>Subtotal</th>
+                                    <th className="py-2 px-4 text-left">Produto</th>
+                                    <th className="py-2 px-4 text-left">Quantidade</th>
+                                    <th className="py-2 px-4 text-left">Preço Unitário</th>
+                                    <th className="py-2 px-4 text-left">Subtotal</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {vendaDetalhes.itens.map((item, index) => (
-                                    <tr key={index}>
-                                        <td>{item.produto.nome}</td>
-                                        <td>{item.quantidade}</td>
-                                        <td>{formatarMoeda(item.precoUnitario)}</td>
-                                        <td>{formatarMoeda(item.quantidade * item.precoUnitario)}</td>
+                                    <tr key={index} className="border-b border-gray-200">
+                                        <td className="py-2 px-4">{item.produto.nome}</td>
+                                        <td className="py-2 px-4">{item.quantidade}</td>
+                                        <td className="py-2 px-4">{formatarMoeda(item.precoUnitario)}</td>
+                                        <td className="py-2 px-4">{formatarMoeda(item.quantidade * item.precoUnitario)}</td>
                                     </tr>
                                 ))}
                             </tbody>
