@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Autocomplete, TextField, Card, CardContent, Typography, Box, Divider, Alert, Chip } from "@mui/material";
+import { Autocomplete, TextField, Card, CardContent, Typography, Alert, Chip } from "@mui/material";
 import axios from "axios";
 import M from "materialize-css";
 
@@ -227,7 +227,7 @@ const VendaForm = ({ onCancel }) => {
                             
                             <div className="col s12 m6">
                                 <div className="input-field">
-                                    <label style={{ fontSize: '14px', fontWeight: 'bold', color: '#4caf50' }}>
+                                    <label style={{ fontSize: '14px', fontWeight: 'bold', color: '#4caf50'}}>
                                         💰 Total da Venda
                                     </label>
                                     <input 

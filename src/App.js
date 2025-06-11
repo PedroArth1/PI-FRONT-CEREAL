@@ -13,7 +13,9 @@ import VendaList from "./VendaList";
 function App() {
   const [updateList, setUpdateList] = useState(false);
   const [activeScreen, setActiveScreen] = useState("usuario");
+
     const [clienteParaEditar, setClienteParaEditar] = useState(null);
+    const [produtoParaEditar, setProdutoParaEditar] = useState(null);
 
   useEffect(() => {
     const elems = document.querySelectorAll(".sidenav");
@@ -50,8 +52,17 @@ function App() {
       case "produto":
         return (
           <>
-            <ProdutoForm onUserAdded={() => setUpdateList(!updateList)} />
-            <ProdutoList key={updateList} />
+            <ProdutoForm 
+              onUserAdded={() => setUpdateList(!updateList)} 
+              produtoParaEditar={produtoParaEditar}
+              setProdutoParaEditar={setProdutoParaEditar}
+            />
+            <ProdutoList 
+              onEditProduto={(produto) => {
+                setProdutoParaEditar(produto);
+              }}
+              updateTrigger={updateList}
+            />
           </>
         );
       case "usuario":
