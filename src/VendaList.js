@@ -42,18 +42,6 @@ const VendaList = () => {
         M.AutoInit(); // Inicializa componentes do Materialize
     }, []);
 
-    const handleExcluir = async (id) => {
-        if (window.confirm("Tem certeza que deseja excluir esta venda?")) {
-            try {
-                await axios.delete(`http://localhost:8080/api/vendas/${id}`);
-                fetchVendas();
-                M.toast({ html: "Venda excluída com sucesso", classes: "green" });
-            } catch (error) {
-                console.error("Erro ao excluir venda:", error);
-                M.toast({ html: "Erro ao excluir venda", classes: "red" });
-            }
-        }
-    };
 
     const formatarData = (dataString) => {
         const data = new Date(dataString);
@@ -115,13 +103,6 @@ const VendaList = () => {
                                                     title="Detalhes"
                                                 >
                                                     <i className="material-icons">visibility</i>
-                                                </button>
-                                                <button
-                                                    className="btn-flat red-text"
-                                                    onClick={() => handleExcluir(venda.id)}
-                                                    title="Excluir"
-                                                >
-                                                    <i className="material-icons">delete</i>
                                                 </button>
                                             </td>
                                         </tr>
@@ -203,16 +184,6 @@ const VendaList = () => {
                                 ))}
                             </tbody>
                         </table>
-                        
-                        <div className="right-align" style={{ marginTop: '20px' }}>
-                            <button 
-                                className="btn waves-effect waves-light red"
-                                onClick={() => handleExcluir(vendaDetalhes.id)}
-                            >
-                                <i className="material-icons left">delete</i>
-                                Excluir Venda
-                            </button>
-                        </div>
                     </div>
                 </div>
             )}
