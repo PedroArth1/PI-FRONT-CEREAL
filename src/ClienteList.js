@@ -2,9 +2,8 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import M from "materialize-css";
 
-const ClienteList = () => {
+const ClienteList = ({ onEdit }) => {
   const [clientes, setClientes] = useState([]);
-  const [clienteSelecionado, setClienteSelecionado] = useState(null);
 
   const fetchClientes = async () => {
     try {
@@ -20,27 +19,23 @@ const ClienteList = () => {
     fetchClientes();
   }, []);
 
-  const handleEditar = (cliente) => {
-    // Dispara um evento customizado com o cliente selecionado
-    setClienteSelecionado(cliente);
-    const evento = new CustomEvent("editarCliente", { detail: clienteSelecionado });
-    window.dispatchEvent(evento);
-  };
-
   const handleExcluir = async (idCliente) => {
-    try {
-      await axios.delete(`http://localhost:8080/api/clientes/${idCliente}`);
-      M.toast({ html: "Cliente excluído com sucesso", classes: "green" });
-      fetchClientes();
-    } catch (error) {
-      console.error("Erro ao excluir cliente:", error);
-      M.toast({ html: "Erro ao excluir cliente", classes: "red" });
+    if (window.confirm("Tem certeza que deseja excluir este cliente?")) {
+      try {
+        await axios.delete(`http://localhost:8080/api/clientes/${idCliente}`);
+        M.toast({ html: "Cliente excluído com sucesso", classes: "green" });
+        fetchClientes();
+      } catch (error) {
+        console.error("Erro ao excluir cliente:", error);
+        M.toast({ html: "Erro ao excluir cliente", classes: "red" });
+      }
     }
   };
 
   return (
     <div className="container">
       <h4>Lista de Clientes</h4>
+      
       <table className="striped highlight responsive-table">
         <thead>
           <tr>
@@ -61,7 +56,7 @@ const ClienteList = () => {
               <td>
                 <button
                   className="btn-flat"
-                  onClick={() => handleEditar(cliente)}
+                  onClick={() => onEdit(cliente)}
                   title="Editar"
                 >
                   <i className="material-icons">edit</i>
